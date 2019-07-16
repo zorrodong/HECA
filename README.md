@@ -2,11 +2,11 @@
 
 We collected five human embryonic datasets from our previously published studies spanning from 4 to 26 weeks of fetal development, including:
 
-**1. fetal germ cells (FGCs) (GEO: GSE86146)  
-2. heart (GEO: GSE106118)  
-3. kidney (GEO: GSE109488)  
-4. prefrontal cortex (PFC) (GEO: GSE104276)  
-5. and cerebral cortex (GEO: GSE103723)**
+**1. Fetal germ cells (FGCs) (GEO: GSE86146)  
+2. Heart (GEO: GSE106118)  
+3. Kidney (GEO: GSE109488)  
+4. Prefrontal cortex (PFC) (GEO: GSE104276)  
+5. Cerebral cortex (GEO: GSE103723)**
 
 Data Loading is easy in R: temp <- readRDS("XXX.rds")
 
