@@ -1,5 +1,6 @@
 # HECA
 Human embryonic cell altas
+
 We collected five human embryonic datasets from our previously published studies, including fetal germ cells (FGCs) (GEO number: GSE86146), heart (GEO number: GSE106118), kidney (GEO number: GSE109488), prefrontal cortex (PFC) (GEO number: GSE104276), and cerebral cortex (GEO number: GSE103723), spanning from 4 to 26 weeks of fetal development.
 
 Importantly, we re-organized the five datasets using uniform pipeline and format, which provided a rich and convenient resource for studying human embryonic development. In brief, barcode and UMI information were extracted by UMI-tools form raw reads. After discarding the poly A bases, TSO sequences and low-quality sequences, the clean reads were mapped to GRCh38 reference using STAR aligner. We used featureCounts to annotate the mapped reads and quantified the UMI counts through UMI-tools. We provided the pipeline for users.
