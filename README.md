@@ -13,7 +13,7 @@ These five datasets have been filtered: we discarded cells with gene number belo
 
 If you find these datasets helpful for your study, please consider the following citation:
 
-1. Enhancing single-cell cellular state inference by incorporating molecular network features \n
+1. Enhancing single-cell cellular state inference by incorporating molecular network features  
    Ji Dong, Peijie Zhou, Yichong Wu, Wendong Wang, Yidong Chen, Xin Zhou, Haoling Xie, Jiansen Lu, Xiannian Zhang, Lu Wen, Wei Fu, Tiejun Li, Fuchou Tang
 doi: https://doi.org/10.1101/699959
 https://www.biorxiv.org/content/10.1101/699959v1
