@@ -8,6 +8,8 @@ We collected five human embryonic datasets from our previously published studies
 4. prefrontal cortex (PFC) (GEO: GSE104276)  
 5. and cerebral cortex (GEO: GSE103723)**
 
+Data Loading is easy in R: temp <- readRDS("XXX.rds")
+
 Importantly, we re-organized the five datasets using uniform pipeline and format, which provided a rich and convenient resource for studying human embryonic development. In brief, barcode and UMI information were extracted by UMI-tools form raw reads. After discarding the poly A bases, TSO sequences and low-quality sequences, the clean reads were mapped to GRCh38 reference using STAR aligner. We used featureCounts to annotate the mapped reads and quantified the UMI counts through UMI-tools. We provided the pipeline for users.
 
 These five datasets have been filtered: we discarded cells with gene number below 1,000 and UMI counts below 10,000. We used our newly developed network-based method, **SCORE (https://github.com/wycwycpku/RSCORE)**, to explore the combined data (for the tutoiral, please see: XXX).
