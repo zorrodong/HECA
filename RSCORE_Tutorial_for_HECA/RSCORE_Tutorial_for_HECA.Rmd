@@ -1,0 +1,151 @@
+---
+title: "RSCORE_Tutorial_for_HECA"
+output: html_notebook
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Please notice that, we use an updated BioGRID PPI (Version: 3.5.174, provided, previous version: 3.5.173), 
+thus the result maybe a little different, but the conclusions are consistent with our study.
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+library(RSCORE)
+library(Seurat)
+library(igraph)
+library(dplyr)
+library(genesorteR)
+```
+load the HECA data
+```{r pretreatment}
+# change the directory to yours
+setwd("F:/Github/HECA/RSCORE_Tutorial_for_HECA/")
+
+Cortex <- readRDS("../Cortex_UMI_counts_filtered.rds")
+FGC <- readRDS("../FGC_UMI_counts_filtered.rds")
+Heart <- readRDS("../Heart_UMI_counts_filtered.rds")
+Kidney <- readRDS("../Kidney_UMI_counts_filtered.rds")
+PFC <- readRDS("../PFC_UMI_counts_filtered.rds")
+
+#combine all the five datasets
+HECA <- cbind(Cortex,FGC,Heart,Kidney,PFC)
+
+#check the data size
+dim(HECA)
+```
+Construct a Seurat V3 object
+```{r}
+HECA_seurat <- CreateSeuratObject(counts = as.matrix(HECA), min.cells = 3, min.features = 1000, 
+                                  names.field = 2, names.delim = '_', 
+                                  assay = 'RNA', project = 'HECA')
+```
+Check the data quality
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+HECA_seurat[["percent.mt"]] <- PercentageFeatureSet(HECA_seurat, pattern = "^MT-")
+
+# Visualize QC metrics as a violin plot
+VlnPlot(HECA_seurat, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3,pt.size = 0.1)
+```
+Quality control
+```{r}
+HECA_seurat <- subset(HECA_seurat, subset = nFeature_RNA > 1000 & nCount_RNA > 10000 & nCount_RNA < 1500000 & percent.mt < 20)
+```
+Since we use the UMI count, we need to nomalize the data.
+We use 100,000 because our data is high-quality rather than 10X data (where you should use 10,000).
+If you load an already normalized dataset, please skip this step
+```{r}
+HECA_seurat <- NormalizeData(HECA_seurat, normalization.method = "LogNormalize", scale.factor = 100000)
+```
+
+You can use either method to remove low-quality genes,mean.var.plot or vst.
+Please keep enough genes for the downstream network inference
+For SMART-seq2 based scRNA-seq, we recommends ~8000 genes, while 10X based data, ~6000 genes.
+You can also try different gene number to obtain optimal results.
+```{r, message=FALSE, warning=FALSE}
+HECA_seurat <- FindVariableFeatures(HECA_seurat, selection.method = "mean.var.plot",
+                                    mean.cutoff = c(0.1,Inf), dispersion.cutoff = c(0.1,Inf))
+
+#HECA_seurat <- FindVariableFeatures(object = HECA_seurat, selection.method = 'vst', nfeatures = 10000)
+
+#check the number of selected genes
+length(VariableFeatures(HECA_seurat))
+```
+Scale the data
+```{r}
+HECA_seurat <- ScaleData(object = HECA_seurat)
+```
+
+PPI data is necessary. You can provide the adjacent matrix of PPI network by yourself or use our function to build a PPI network easily.
+```{r, message=FALSE, warning=FALSE}
+# change the directory to yours 
+hs_network <- as.matrix(readRDS("hs_ppi_matrix_BioGRID-3.5.174.Rda"))
+
+#build a BioGRID homo sapien PPI, the PPI matrix is saved in the working directory
+#hs_network <- as.matrix(getPPI_Biogrid())
+```
+Now, we can use SCORE to analyze our data
+```{r, message=FALSE, warning=FALSE}
+DefaultAssay(HECA_seurat) <- "RNA"
+HECA_seurat <- R.SCORE(Data = HECA_seurat, PPI = hs_network, max_step = 10, nCores = 4)
+```
+
+
+The result is saved in 'Net' assay of RCA_seurat (it has been set as default assay).
+You can plot the UMAP
+```{r, message=FALSE, warning=FALSE}
+HECA_seurat <- RunPCA(HECA_seurat, features = rownames(HECA_seurat), assay = "Net", npcs = 50,
+                      reduction.name = "NetPCA", reduction.key = "NetPCA_", verbose = F)
+HECA_seurat <- RunUMAP(HECA_seurat, reduction = "NetPCA", dims = 1:50,
+                       reduction.name = "NetUMAP",  reduction.key = "NetUMAP_")
+```
+Now we can do clustering, you can change the parameters to obtan optimal results
+```{r, message=FALSE, warning=FALSE}
+HECA_seurat <- FindNeighbors(HECA_seurat, reduction = "NetPCA",dims = 1:50,k.param = 10)
+HECA_seurat <- FindClusters(HECA_seurat, resolution = 0.8)
+```
+```{r, fig.height=5, fig.width=12, message=FALSE, warning=FALSE}
+Net_umap_cluster <- DimPlot(HECA_seurat, reduction = "NetUMAP", pt.size = 1,label = T)
+Net_umap_origin <- DimPlot(HECA_seurat, reduction = "NetUMAP", pt.size = 1, group.by = 'orig.ident',label = T)
+
+CombinePlots(plots = list(Net_umap_origin, Net_umap_cluster))
+```
+```{r,  fig.height=10, fig.width=12, message=FALSE, warning=FALSE}
+FeaturePlot(HECA_seurat, reduction = "NetUMAP", c('PTPRC','ALAS2','CDH5','PECAM1'))
+```
+
+```{r, message=FALSE, warning=FALSE}
+#Identify the DEGs using genesorteR
+SCORE_DEGs_list <- Find_Markers(object = HECA_seurat, assay = 'RNA', FoldChange = 1.5)
+table(SCORE_DEGs_list$Markers$Cluster)
+
+SCORE_DAMs_list <- Find_Markers(object = HECA_seurat, assay = 'Net', FoldChange = 1.5)
+table(SCORE_DAMs_list$Markers$Cluster)
+```
+Select the top n marker genes of each cluster
+```{r, fig.height=4, fig.width=20, message=FALSE, warning=FALSE}
+top10_DEGs <- SCORE_DEGs_list$Markers %>% group_by(Cluster) %>% top_n(n = 20, wt = Gene.Score)
+#genesorteR plotMarkerHeat function
+plotMarkerHeat(exp = SCORE_DEGs_list$GeneSort$inputMat,
+               classes = SCORE_DEGs_list$GeneSort$inputClass,
+               markers = top10_DEGs$Marker,
+               clusterGenes = FALSE,
+               averageCells = 1)
+
+```
+Select the top n marker modules of each cluster
+```{r, fig.height=4, fig.width=20, message=FALSE, warning=FALSE}
+top10_DAMs <- SCORE_DAMs_list$Markers %>% group_by(Cluster) %>% top_n(n = 20, wt = Gene.Score)
+plotMarkerHeat(exp = SCORE_DAMs_list$GeneSort$inputMat,
+               classes = SCORE_DAMs_list$GeneSort$inputClass,
+               markers = top10_DAMs$Marker,
+               clusterGenes = FALSE,
+               averageCells = 1)
+```
+
+You can also show steiner tree of given cluster  
+```{r, message=FALSE, warning=FALSE}
+PlotSteinertree(HECA_seurat, ident = '0')
+```
