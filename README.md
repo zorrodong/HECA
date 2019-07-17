@@ -12,7 +12,7 @@ Data Loading is easy in R: temp <- readRDS("XXX.rds")
 
 Importantly, we re-organized the five datasets using uniform pipeline and format, which provided a rich and convenient resource for studying human embryonic development. In brief, barcode and UMI information were extracted by UMI-tools form raw reads. After discarding the poly A bases, TSO sequences and low-quality sequences, the clean reads were mapped to GRCh38 reference using STAR aligner. We used featureCounts to annotate the mapped reads and quantified the UMI counts through UMI-tools. We provided the pipeline for users.
 
-These five datasets have been filtered: we discarded cells with gene number below 1,000 and UMI counts below 10,000. We used our newly developed network-based method, **SCORE (https://github.com/wycwycpku/RSCORE)**, to explore the combined data (for the tutorial, please see: https://github.com/zorrodong/HECA/blob/master/RSCORE_Tutorial_for_HECA/RSCORE_Tutorial_for_HECA.pdf).
+These five datasets have been filtered: we discarded cells with gene number below 1,000 and UMI counts below 10,000. We used our newly developed network-based method, **SCORE** (https://github.com/wycwycpku/RSCORE), to explore the combined data (for the tutorial, please see: https://github.com/zorrodong/HECA/blob/master/RSCORE_Tutorial_for_HECA/RSCORE_Tutorial_for_HECA.pdf).
 
 If you find these datasets helpful for your study, please consider the following citation:
 
