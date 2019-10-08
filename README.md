@@ -25,6 +25,8 @@ If you find these datasets helpful for your study, please consider the following
 
 **Note:**
 
+2019.10.07, BioGrid human PPI database: 9606_ppi_matrix_BioGRID-3.5.177.Rda is now available.
+
 2019.09.06, BioGrid human PPI database: 9606_ppi_matrix_BioGRID-3.5.176.Rda is now available.
 
 2019.08.17, BioGrid human PPI database: 9606_ppi_matrix_BioGRID-3.5.175.Rda is now available.
